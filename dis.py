@@ -135,9 +135,7 @@ class LuaDec:
             B   = (ins >> 14)#% (1 << 18)
         elif opMode[4] == "iAsBx":
             A   = (ins >> 6 ) % (1 << 8)
-            B   = (ins >> 14) % (1 << 17)
-            if ins >> 31:
-                B = - ((1 << 17) - B)
+            B   = (ins >> 14) - (1 << 17) + 1
         elif opMode[4] == "iAx":
             A   = (ins >> 6 )#% (1 << 26)
         else:
