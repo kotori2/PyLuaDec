@@ -87,8 +87,7 @@ class LuaDec:
             const_type = self.fileBuf[self.ptr]
             self.ptr += 1
             if const_type == const.LUA_DATATYPE['LUA_TNIL']:
-                const_val = self.fileBuf[self.ptr]
-                self.ptr += 1
+                const_val = None
             elif const_type == const.LUA_DATATYPE['LUA_TNUMBER']:
                 #lua的number=double(8 bytes)
                 const_val = struct.unpack("<d", self.fileBuf[self.ptr:self.ptr + 8])[0]
@@ -103,7 +102,7 @@ class LuaDec:
                 if self.fileBuf[self.ptr - 1] != 0:
                     raise Exception("Bad string")
             else:
-                raise Exception("Undefined constant type.")
+                raise Exception("Undefined constant type {0}.".format(hex(const_type)))
             print("Constant: {0}".format(const_val))
 
         #Protos
