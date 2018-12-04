@@ -122,6 +122,9 @@ class LuaDec:
     def processInstruction(self, ins):
         opCode = ins % (1 << 6)
         opMode = const.opMode[opCode]
+        A = 0
+        B = 0
+        C = 0
 
         if opMode[4] == "iABC":
             A   = (ins >> 6 ) % (1 << 8)
@@ -139,9 +142,63 @@ class LuaDec:
             A   = (ins >> 6 )#% (1 << 26)
         else:
             raise Exception("Unknown opMode {0}".format(opMode[4]))
+
+        #format A
+        if opMode[1] == 1:
+            parsedA = "R{0}".format(A)
+        elif opMode[1] == 0:
+            if const.opCode[opCode].find("UP") > 0:
+                parsedA = "U{0}".format(A)
+            else:
+                parsedA = "R{0}".format(A)
+        else:
+            raise Exception("Unknown A Mode {0}".format(opMode[1]))
+
+        #format B
+        if opMode[2] == 1:
+            if const.opCode[opCode].find("UP") >= 0:
+                parsedB = "U{0}".format(B)
+            else:
+                parsedB = "{0}".format(B)
+        elif opMode[2] == 0:
+            parsedB = ""
+        elif opMode[2] == 2:
+            if B < 0x100:
+                parsedB = "R{0}".format(B)
+            else:
+                parsedB = "K{0}".format(B - 0x100)
+        elif opMode[2] == 3:
+            if B >= 0x100:
+                parsedB = "R{0}".format(B - 0x100)
+            else:
+                parsedB = "K{0}".format(B)
+        else:
+            raise Exception("Unknown B Mode {0}".format(opMode[2]))
+
+        #format C
+        if opMode[3] == 1:
+            if const.opCode[opCode].find("UP") >= 0:
+                parsedC = "U{0}".format(C)
+            else:
+                parsedC = "{0}".format(C)
+        elif opMode[3] == 0:
+            parsedC = ""
+        elif opMode[3] == 2:
+            if C >= 0x100:
+                parsedC = "R{0}".format(C)
+            else:
+                parsedC = "K{0}".format(C - 0x100)
+        elif opMode[3] == 3:
+            if C < 0x100:
+                parsedC = "R{0}".format(C)
+            else:
+                parsedC = "K{0}".format(C - 0x100)
+        else:
+            raise Exception("Unknown C Mode {0}".format(opMode[3]))
         
         try:
-            print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode], hex(A), hex(B), hex(C)))
+            print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode][3:], parsedA, parsedB, parsedC))
+            print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
         except:
             pass
 
