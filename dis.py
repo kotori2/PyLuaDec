@@ -161,7 +161,10 @@ class LuaDec:
         elif opMode[2] == 0:
             parsedB = ""
         elif opMode[2] == 2:
-            if B < 0x100:
+            if opMode[4] == "iAsBx":
+                #B为sBx的时候，只有可能是立即数而不是寄存器
+                parsedB = "{0}".format(B)
+            elif B < 0x100:
                 parsedB = "R{0}".format(B)
             else:
                 parsedB = "K{0}".format(B - 0x100)
@@ -196,7 +199,7 @@ class LuaDec:
         
         try:
             print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode][3:], parsedA, parsedB, parsedC))
-            print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
+            #print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
         except:
             pass
 
