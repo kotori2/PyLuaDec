@@ -134,7 +134,7 @@ class LuaDec:
             A   = (ins >> 6 ) % (1 << 8)
             B   = (ins >> 14) % (1 << 17)
             if ins >> 31:
-                B = (1 << 18) - B
+                B = - ((1 << 17) - B)
         elif opMode[4] == "iAx":
             A   = (ins >> 6 )#% (1 << 26)
         else:
