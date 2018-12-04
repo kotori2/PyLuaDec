@@ -1,13 +1,16 @@
 import struct
 from consts import const
+from treelib import Tree
 const = const()
 
 class LuaDec:
     def __init__(self, fileName):
         self.ptr = 0
+        self.tree = Tree()
         self.readFile(fileName)
         self.readHeader()
         self.readFunction()
+        self.tree.show()
 
     def readFile(self, fileName):
         f = open(fileName, "rb")
@@ -38,7 +41,27 @@ class LuaDec:
             raise Exception("Unexcepted lua_tail value: {0}".format(lua_tail.hex()))
         self.ptr = 18
 
-    def readFunction(self):
+    def readFunction(self, parent=None):
+        #处理tree
+        if parent:
+            funcName = "function"
+            funcSuffix = []
+            #强烈谴责py不支持do...while
+            #别问我这堆东西怎么工作的，it just works!!
+            pNode = self.tree.get_node(parent).identifier
+            funcSuffix.append("_{0}".format(len(self.tree.children(pNode))))
+            while self.tree.parent(pNode):
+                pNode = self.tree.parent(pNode).identifier
+                funcSuffix.append("_{0}".format(len(self.tree.children(pNode)) - 1))
+            
+            funcSuffix.reverse()
+            for i in funcSuffix:
+                funcName += i
+        else:
+            funcName = "root"
+        self.tree.create_node(funcName, funcName, parent=parent)
+        #self.tree.show()
+
         #ProtoHeader
         protoheader = struct.unpack("<IIccc", self.fileBuf[self.ptr:self.ptr + 11])
         self.ptr += 11
@@ -47,7 +70,7 @@ class LuaDec:
         numParams       = ord(protoheader[2])
         is_vararg       = ord(protoheader[3])
         maxStackSize    = ord(protoheader[4])
-        print("Function defined on line {0} - {1} have {2} params".format(lineDefined, lastLineDefined, numParams))
+        print("Function {0} defined on line {1} - {2} have {3} params".format(funcName, lineDefined, lastLineDefined, numParams))
         
         #Code
         sizeCode = self.readUInt32()
@@ -87,7 +110,7 @@ class LuaDec:
         sizeProtos = self.readUInt32()
         print("Protos total size: {0}".format(sizeProtos))
         for i in range(sizeProtos):
-            self.readFunction()
+            self.readFunction(parent=funcName)
 
         #Upvalue
         sizeUpvalue = self.readUInt32()
