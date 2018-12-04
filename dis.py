@@ -23,9 +23,6 @@ class LuaDec:
         result = struct.unpack("<Q", self.fileBuf[self.ptr:self.ptr + 8])[0]
         self.ptr += 8
         return result
-    
-    def bin2int(self, data):
-        return int(data.replace(" ", ""), 2)
 
     def readHeader(self):
         magic = self.fileBuf[:4]
@@ -123,29 +120,28 @@ class LuaDec:
         sizeUpvalNames = self.readUInt32()
 
     def processInstruction(self, ins):
-        opCode = self.bin2int("0000 0000 0000 0000 0000 0000 0011 1111") & ins
-        print("opCode: {0}".format(const.opCode[opCode]))
+        opCode = ins % (1 << 6)
         opMode = const.opMode[opCode]
 
         if opMode[4] == "iABC":
-            A   = self.bin2int("0000 0000 0000 0000 0011 1111 1100 0000") & ins >> 6
-            B   = self.bin2int("1111 1111 1000 0000 0000 0000 0000 0000") & ins >> 23
-            C   = self.bin2int("0000 0000 0111 1111 1100 0000 0000 0000") & ins >> 14
+            A   = (ins >> 6 ) % (1 << 8)
+            B   = (ins >> 23)#% (1 << 9)
+            C   = (ins >> 14) % (1 << 9)
         elif opMode[4] == "iABx":
-            A   = self.bin2int("0000 0000 0000 0000 0011 1111 1100 0000") & ins >> 6
-            B   = self.bin2int("1111 1111 1111 1111 1100 0000 0000 0000") & ins >> 14
+            A   = (ins >> 6 ) % (1 << 8)
+            B   = (ins >> 14)#% (1 << 18)
         elif opMode[4] == "iAsBx":
-            A   = self.bin2int("0000 0000 0000 0000 0011 1111 1100 0000") & ins >> 6
-            B   = self.bin2int("1111 1111 1111 1111 1100 0000 0000 0000") & ins >> 14
+            A   = (ins >> 6 ) % (1 << 8)
+            B   = (ins >> 14) % (1 << 17)
+            if ins >> 31:
+                B = (1 << 18) - B
         elif opMode[4] == "iAx":
-            A   = self.bin2int("0000 0000 0000 0000 0011 1111 1100 0000") & ins >> 6
+            A   = (ins >> 6 )#% (1 << 26)
         else:
             raise Exception("Unknown opMode {0}".format(opMode[4]))
         
         try:
-            print("A = {0}".format(hex(A)))
-            print("B = {0}".format(hex(B)))
-            print("C = {0}".format(hex(C)))
+            print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode], hex(A), hex(B), hex(C)))
         except:
             pass
 
