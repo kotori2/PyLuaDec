@@ -145,7 +145,7 @@ class LuaDec:
         if opMode[1] == 1:
             parsedA = "R{0}".format(A)
         elif opMode[1] == 0:
-            if const.opCode[opCode].find("UP") > 0:
+            if const.opCode == "OP_GETTABUP" or const.opCode == "OP_SETTABUP":
                 parsedA = "U{0}".format(A)
             else:
                 parsedA = "R{0}".format(A)
@@ -160,19 +160,17 @@ class LuaDec:
                 parsedB = "{0}".format(B)
         elif opMode[2] == 0:
             parsedB = ""
-        elif opMode[2] == 2:
+        elif opMode[2] == 2 or opMode[2] == 3:
             if opMode[4] == "iAsBx":
                 #B为sBx的时候，只有可能是立即数而不是寄存器
                 parsedB = "{0}".format(B)
+            elif const.opCode[opCode] == "OP_LOADK":
+                #LOADK一定是读Kx而不是Rx
+                parsedB = "K{0}".format(B)
             elif B < 0x100:
                 parsedB = "R{0}".format(B)
             else:
                 parsedB = "K{0}".format(B - 0x100)
-        elif opMode[2] == 3:
-            if B >= 0x100:
-                parsedB = "R{0}".format(B - 0x100)
-            else:
-                parsedB = "K{0}".format(B)
         else:
             raise Exception("Unknown B Mode {0}".format(opMode[2]))
 
@@ -184,12 +182,7 @@ class LuaDec:
                 parsedC = "{0}".format(C)
         elif opMode[3] == 0:
             parsedC = ""
-        elif opMode[3] == 2:
-            if C >= 0x100:
-                parsedC = "R{0}".format(C)
-            else:
-                parsedC = "K{0}".format(C - 0x100)
-        elif opMode[3] == 3:
+        elif opMode[3] == 2 or opMode[3] == 3:
             if C < 0x100:
                 parsedC = "R{0}".format(C)
             else:
@@ -198,8 +191,8 @@ class LuaDec:
             raise Exception("Unknown C Mode {0}".format(opMode[3]))
         
         try:
-            print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode][3:], parsedA, parsedB, parsedC))
-            #print("opCode: {0} \t{1} \t{2} \t{3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
+            print("{0} \t{1} {2} {3}".format(const.opCode[opCode][3:], parsedA, parsedB, parsedC))
+            #print("opCode: {0} \t{1} {2} {3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
         except:
             pass
 
