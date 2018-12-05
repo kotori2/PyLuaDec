@@ -59,7 +59,6 @@ class LuaDec:
                 funcName += i
         else:
             funcName = "root"
-        self.tree.create_node(funcName, funcName, parent=parent)
         #self.tree.show()
 
         #ProtoHeader
@@ -74,14 +73,17 @@ class LuaDec:
         
         #Code
         sizeCode = self.readUInt32()
+        instructions = []
         print("Code total size: {0}".format(sizeCode))
         for i in range(sizeCode):
             ins = self.readUInt32()
-            self.processInstruction(ins)
+            instructions.append(ins)
+            #self.processInstruction(ins)
             #print("Instruction: {0}".format(hex(ins)))
 
         #Constants
         sizeConstants = self.readUInt32()
+        constants = []
         print("Constants total size: {0}".format(sizeConstants))
         for i in range(sizeConstants):
             const_type = self.fileBuf[self.ptr]
@@ -103,6 +105,7 @@ class LuaDec:
                     raise Exception("Bad string")
             else:
                 raise Exception("Undefined constant type {0}.".format(hex(const_type)))
+            constants.append(constant_val)
             print("Constant: {0}".format(const_val))
 
         #Protos
@@ -113,11 +116,13 @@ class LuaDec:
 
         #Upvalue
         sizeUpvalue = self.readUInt32()
+        upvalues = []
         print("Upvalue total size: {0}".format(sizeUpvalue))
         for i in range(sizeUpvalue):
             instack = self.fileBuf[self.ptr]
             idx     = self.fileBuf[self.ptr + 1]
             self.ptr += 2
+            upvalues.append([instack, idx])
             print("Upvalue: {0} {1}".format(instack, idx))
 
         #srcName
@@ -140,6 +145,14 @@ class LuaDec:
 
         #UpvalNames
         sizeUpvalNames = self.readUInt32()
+
+        #将内容写入tree
+        data = {
+            "instructions": instructions,
+            "constants":    constants,
+            "upvalues":     upvalues,
+        }
+        self.tree.create_node(funcName, funcName, parent=parent, data=data)
 
     def processInstruction(self, ins):
         opCode = ins % (1 << 6)
