@@ -253,7 +253,7 @@ class LuaDec:
         if opMode[1] == 1:
             parsedA = "R{0}".format(A)
         elif opMode[1] == 0:
-            if const.opCode == "OP_GETTABUP" or const.opCode == "OP_SETTABUP":
+            if const.opCode[opCode] == "OP_SETTABUP":
                 parsedA = "U{0}".format(A)
             else:
                 parsedA = "R{0}".format(A)
@@ -279,6 +279,7 @@ class LuaDec:
                 parsedB = "R{0}".format(B)
             else:
                 parsedB = "K{0}".format(B - 0x100)
+                B -= 0x100
         else:
             raise Exception("Unknown B Mode {0}".format(opMode[2]))
 
@@ -295,6 +296,7 @@ class LuaDec:
                 parsedC = "R{0}".format(C)
             else:
                 parsedC = "K{0}".format(C - 0x100)
+                C -= 0x100
         else:
             raise Exception("Unknown C Mode {0}".format(opMode[3]))
         
