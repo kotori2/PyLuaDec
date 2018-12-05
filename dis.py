@@ -6,6 +6,7 @@ const = const()
 class LuaDec:
     def __init__(self, fileName):
         self.ptr = 0
+        self.pc = 0
         self.tree = Tree()
         self.readFile(fileName)
         self.readHeader()
@@ -105,14 +106,14 @@ class LuaDec:
                     raise Exception("Bad string")
             else:
                 raise Exception("Undefined constant type {0}.".format(hex(const_type)))
-            constants.append(constant_val)
+            constants.append(const_val)
             print("Constant: {0}".format(const_val))
 
-        #Protos
+        #Skip Protos
+        ptrBackupStart = self.ptr #备份protos的位置，先处理后面的upvalue等东西
         sizeProtos = self.readUInt32()
-        print("Protos total size: {0}".format(sizeProtos))
         for i in range(sizeProtos):
-            self.readFunction(parent=funcName)
+            self.skipFunction()
 
         #Upvalue
         sizeUpvalue = self.readUInt32()
@@ -153,6 +154,78 @@ class LuaDec:
             "upvalues":     upvalues,
         }
         self.tree.create_node(funcName, funcName, parent=parent, data=data)
+        
+        #Proto
+        ptrBackupEnd = self.ptr
+        self.ptr = ptrBackupStart
+        sizeProtos = self.readUInt32()
+        print("Protos total size: {0}".format(sizeProtos))
+        for i in range(sizeProtos):
+            self.readFunction(parent=funcName)
+        self.ptr = ptrBackupEnd
+
+        #处理单个指令
+        self.pc = 0
+        for i in data['instructions']:
+            self.processInstruction(i)
+            self.pc += 1
+
+    #跳过函数，用于需要获取后面的指针位置的情况
+    def skipFunction(self):
+        print("Start skipping Proto, current ptr at {0}".format(hex(self.ptr)))
+        #ProtoHeader
+        self.ptr += 11
+
+        #Code
+        sizeCode = self.readUInt32()
+        for i in range(sizeCode):
+            self.ptr += 4
+
+        #Constants
+        sizeConstants = self.readUInt32()
+        for i in range(sizeConstants):
+            const_type = self.fileBuf[self.ptr]
+            self.ptr += 1
+            if const_type == const.LUA_DATATYPE['LUA_TNIL']:
+                pass
+            elif const_type == const.LUA_DATATYPE['LUA_TNUMBER']:
+                self.ptr += 8
+            elif const_type == const.LUA_DATATYPE['LUA_TBOOLEAN']:
+                self.ptr += 1
+            elif const_type == const.LUA_DATATYPE['LUA_TSTRING']:
+                str_len = self.readUInt32()
+                self.ptr += str_len
+            else:
+                raise Exception("Undefined constant type {0}.".format(hex(const_type)))
+
+        #Protos
+        sizeProtos = self.readUInt32()
+        for i in range(sizeProtos):
+            self.skipFunction()
+
+        #Upvalue
+        sizeUpvalue = self.readUInt32()
+        for i in range(sizeUpvalue):
+            self.ptr += 2
+
+        #srcName
+        sizeSrcName = self.readUInt32()
+        if sizeSrcName > 0:
+            self.ptr += sizeSrcName
+
+        #Lines
+        sizeLines = self.readUInt32()
+        self.ptr += sizeLines
+
+        #LocVars
+        sizeLocVars = self.readUInt32()
+        #for i in sizeLocVars:
+        #    varname_size = 
+        #TODO: sizeLocVars不为0的情况（未strip）
+
+        #UpvalNames
+        sizeUpvalNames = self.readUInt32()
+        print("End skipping Proto. Current ptr at {0}".format(hex(self.ptr)))
 
     def processInstruction(self, ins):
         opCode = ins % (1 << 6)
