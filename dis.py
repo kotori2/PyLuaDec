@@ -28,6 +28,19 @@ class LuaDec:
         self.ptr += 8
         return result
 
+    def formatValue(self, val):
+        if type(val) == str:
+            return "\"{}\"".format(val)
+        elif type(val) == bool:
+            if val:
+                return "true"
+            else:
+                return "false"
+        elif val is None:
+            return "nil"
+        else:
+            return val
+
     def readHeader(self):
         magic = self.fileBuf[:4]
         if magic != b"\x1bLua":
@@ -162,10 +175,21 @@ class LuaDec:
         print("; {:<20s}{}".format("Is_vararg", is_vararg))
         print("; {:<20s}{}\n".format("Max Stack Size", maxStackSize))
         
+        #生成一个Upvalue和Constant的拼接表
+        fmtVals = {}
+        count = 0
+        for i in data['constants']:
+            fmtVals["K{}".format(count)] = self.formatValue(i)
+            count += 1
+        count = 0
+        for i in data['upvalues']:
+            fmtVals["U{}".format(count)] = "U{}".format(count)
+            count += 1
 
         #处理单个指令
         self.pc = 0
         self.currFunc = funcName
+        self.fmtVals = fmtVals
         for i in data['instructions']:
             self.processInstruction(i)
             self.pc += 1
@@ -335,6 +359,14 @@ class LuaDec:
             parsedC_ = parsedC
         comment = const.pseudoCode[opCode].format(A=A,B=B,C=C,PB=parsedB_,PC=parsedC_)
 
+        #预处理
+        #if BForceK:
+        #    comment = comment.replace("R{}".format(B), "K{}".format(B))
+        if const.opCode[opCode] == "OP_SETTABLE" and CForceK:
+            comment = comment.replace("R{}".format(C), "{{K{}}}".format(C))
+
+        #再处理Upvalue和Constants
+        comment = comment.format(**self.fmtVals)
 
         #对部分需要处理的命令进行处理
         if const.opCode[opCode] == "OP_LOADBOOL":
