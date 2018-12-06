@@ -165,6 +165,7 @@ class LuaDec:
 
         #处理单个指令
         self.pc = 0
+        self.currFunc = funcName
         for i in data['instructions']:
             self.processInstruction(i)
             self.pc += 1
@@ -382,6 +383,27 @@ class LuaDec:
                 comment = comment[:-2]
             elif B == 0:
                 comment += "up to top"
+        elif const.opCode[opCode] == "OP_FORLOOP":
+            comment = comment.replace("RD", "R{}".format(A + 1))
+            comment = comment.replace("RE", "R{}".format(A + 2))
+            comment = comment.replace("RF", "R{}".format(A + 3))
+            comment += "goto {} end".format(self.pc + B + 1)
+        elif const.opCode[opCode] == "OP_FORPREP":
+            comment = comment.replace("RD", "R{}".format(A + 2))
+            comment += "(goto {})".format(self.pc + B + 1)
+        elif const.opCode[opCode] == "OP_TFORCALL":
+            comment = comment.replace("RD", "R{}".format(A + 1))
+            comment = comment.replace("RE", "R{}".format(A + 2))
+            comment = comment.replace("RF", "R{}".format(A + 3))
+            comment = comment.replace("RG", "R{}".format(A + 4))
+        elif const.opCode[opCode] == "OP_TFORLOOP":
+            comment = comment.replace("RD", "R{}".format(A + 1))
+            comment += " (goto {}))".format(self.pc + B + 1)
+        elif const.opCode[opCode] == "OP_CLOSURE":
+            if self.currFunc == "root":
+                comment += "function_{})".format(B)
+            else:
+                comment += self.currFunc + "_{})".format(B)
         
         regsFmt = "{} {} {}".format(parsedA, parsedB, parsedC)
         print("{:>5s} [-]: {:<10s}{:<13s}; {}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))

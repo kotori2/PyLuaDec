@@ -104,7 +104,15 @@ class const:
             "if R{B} then R{A} := R{B};",
             "",                                     #R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
             "",                                     #return R(A)(R(A+1), ... ,R(A+B-1))
-            "return "
+            "return ",
+            "R{A} += RE; if R{A} <= RD then RF := R{A}; PC += {B}, ",
+            "R{A} -= RD; PC += {B} ",
+            "RF, RG := R{A}(RD, RE)",
+            "if RD ~= nil then (R{A} := RD; PC += {B}",
+            "UNSUPPORTED",
+            "R{A} := closure(",
+            "UNSUPPORTED",
+            "UNSUPPORTED"
         ]
 
         OpArgN = 0  #参数未被使用
