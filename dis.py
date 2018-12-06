@@ -453,7 +453,11 @@ class LuaDec:
             else:
                 comment += self.currFunc + "_{})".format(B)
         
-        regsFmt = "{} {} {}".format(parsedA, parsedB, parsedC)
+        seq = []
+        for i in [parsedA, parsedB, parsedC]:
+            if i != "":
+                seq.append(str(i))
+        regsFmt = " ".join(seq)
         print("{:>5s} [-]: {:<10s}{:<13s}; {}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))
 
 d = LuaDec("note_manager.lua")
