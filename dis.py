@@ -325,10 +325,16 @@ class LuaDec:
 
         # parse comment
         #先用模板拼接
-        try:
-            comment = const.pseudoCode[opCode].format(A=A,B=B,C=C)
-        except:
-            comment = "Unknown"
+        if len(parsedB) > 0 and (parsedB[0] == 'K' or parsedB[0] == 'U'):
+            parsedB_ = "{{{}}}".format(parsedB)
+        else:
+            parsedB_ = parsedB
+        if len(parsedC) > 0 and (parsedC[0] == 'K' or parsedC[0] == 'U'):
+            parsedC_ = "{{{}}}".format(parsedC)
+        else:
+            parsedC_ = parsedC
+        comment = const.pseudoCode[opCode].format(A=A,B=B,C=C,PB=parsedB_,PC=parsedC_)
+
 
         #对部分需要处理的命令进行处理
         if const.opCode[opCode] == "OP_LOADBOOL":
@@ -353,6 +359,8 @@ class LuaDec:
             comment += " (goto {0})".format(self.pc + 1 + B)
         elif const.opCode[opCode] in ["OP_EQ", "OP_LT", "OP_LE", "OP_TEST", "OP_TESTSET"]:
             comment += " goto {0} else goto {1}".format(self.pc + 2, self.pc + 1)
+            if C == 0:
+                comment = comment.replace("not ", "")
         elif const.opCode[opCode] == "OP_CALL":
             comment = ""
             for i in range(C - 1):
