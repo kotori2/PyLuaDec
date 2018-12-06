@@ -421,7 +421,7 @@ class LuaDec:
             else:
                 comment += "R{} to top)".format(C)
         elif const.opCode[opCode] == "OP_TAILCALL":
-            comment = " := R{}(".format(A)
+            comment = "R{} to top := R{}(".format(A, A)
             for i in range(B - 1):
                 comment += "R{}, ".format(A + i + 1)
             if B > 1:
@@ -434,7 +434,7 @@ class LuaDec:
             if B > 1:
                 comment = comment[:-2]
             elif B == 0:
-                comment += "up to top"
+                comment += "R{} to top".format(A)
         elif const.opCode[opCode] == "OP_FORLOOP":
             comment = comment.replace("RD", "R{}".format(A + 1))
             comment = comment.replace("RE", "R{}".format(A + 2))
