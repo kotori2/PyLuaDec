@@ -342,14 +342,14 @@ class LuaDec:
                 comment += "; goto {0}".format(self.pc + 2)
         elif const.opCode[opCode] == "OP_LOADNIL":
             comment = ""
-            for i in range(B):
+            for i in range(B + 1):
                 comment += "R{0}, ".format(A + i)
             comment = comment[:-2]
             comment += " := nil"
         elif const.opCode[opCode] == "OP_SELF":
             comment = "R{}".format(A+1) + comment[2:]
         elif const.opCode[opCode] == "OP_JMP":
-            comment += "; goto {0}".format(self.pc + 1 + B)
+            comment += " (goto {0})".format(self.pc + 1 + B)
         elif const.opCode[opCode] in ["OP_EQ", "OP_LT", "OP_LE", "OP_TEST", "OP_TESTSET"]:
             comment += " goto {0} else goto {1}".format(self.pc + 2, self.pc + 1)
         elif const.opCode[opCode] == "OP_CALL":
@@ -377,7 +377,7 @@ class LuaDec:
                 comment = comment + ")"
         elif const.opCode[opCode] == "OP_RETURN":
             for i in range(B - 1):
-                comment += "R{}, ".format(A + i + 1)
+                comment += "R{}, ".format(A + i)
             if B > 1:
                 comment = comment[:-2]
             elif B == 0:
