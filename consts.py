@@ -72,6 +72,13 @@ class const:
             "OP_EXTRAARG"#/*	Ax	extra (larger) argument for previous opcode	*/
         ]
 
+        self.pseudoCode = [
+            "R{A} := R{B}",
+            "R{A} := {{K{B}}}",
+            "UNSUPPORTED",
+            "R{A} := {B}"
+        ]
+
         OpArgN = 0  #参数未被使用
         OpArgU = 1  #已使用参数
         OpArgR = 2  #参数是寄存器或跳转偏移

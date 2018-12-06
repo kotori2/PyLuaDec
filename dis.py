@@ -299,11 +299,31 @@ class LuaDec:
                 C -= 0x100
         else:
             raise Exception("Unknown C Mode {0}".format(opMode[3]))
-        
-        try:
-            print("{0} \t{1} {2} {3}".format(const.opCode[opCode][3:], parsedA, parsedB, parsedC))
-            #print("opCode: {0} \t{1} {2} {3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
-        except:
-            pass
 
-d = LuaDec("start.lua")
+        # parse comment
+        #先用模板拼接
+        try:
+            comment = const.pseudoCode[opCode].format(A=A,B=B,C=C)
+        except:
+            comment = "Unknown"
+
+        #对部分需要处理的命令进行处理
+        if const.opCode[opCode] == "OP_LOADBOOL":
+            #把0/1转换成false/true
+            comment = comment[:-1]
+            if B:
+                comment += "true"
+            else:
+                comment += "false"
+            #处理跳转
+            if C:
+                comment += "; goto {0}".format(self.pc + 2)
+        
+        #try:
+        regsFmt = "{} {} {}".format(parsedA, parsedB, parsedC)
+        print("{:>5s} [-]: {:<10s}{:<13s};{}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))
+            #print("opCode: {0} \t{1} {2} {3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
+        #except:
+        #    pass
+
+d = LuaDec("note_manager.lua")
