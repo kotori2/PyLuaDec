@@ -302,6 +302,8 @@ class LuaDec:
         elif opMode[1] == 0:
             if const.opCode[opCode] == "OP_SETTABUP":
                 parsedA = "U{0}".format(A)
+            elif const.opCode[opCode] in ["OP_EQ", "OP_LT", "OP_LE"]:
+                parsedA = A
             else:
                 parsedA = "R{0}".format(A)
         else:
@@ -362,8 +364,8 @@ class LuaDec:
         #预处理
         #if BForceK:
         #    comment = comment.replace("R{}".format(B), "K{}".format(B))
-        if const.opCode[opCode] == "OP_SETTABLE" and CForceK:
-            comment = comment.replace("R{}".format(C), "{{K{}}}".format(C))
+        #if const.opCode[opCode] == "OP_SETTABLE" and CForceK:
+        #    comment = comment.replace("R{}".format(C), "{{K{}}}".format(C))
 
         #再处理Upvalue和Constants
         comment = comment.format(**self.fmtVals)
@@ -390,6 +392,12 @@ class LuaDec:
         elif const.opCode[opCode] == "OP_JMP":
             comment += " (goto {0})".format(self.pc + 1 + B)
         elif const.opCode[opCode] in ["OP_EQ", "OP_LT", "OP_LE", "OP_TEST", "OP_TESTSET"]:
+            if const.opCode[opCode] == "OP_EQ" and A:
+                comment = comment.replace("==", "~=")
+            if const.opCode[opCode] == "OP_LT" and A:
+                comment = comment.replace("<", ">=")
+            if const.opCode[opCode] == "OP_LE" and A:
+                comment = comment.replace("<=", ">")
             comment += " goto {0} else goto {1}".format(self.pc + 2, self.pc + 1)
             if C == 0:
                 comment = comment.replace("not ", "")

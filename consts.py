@@ -97,7 +97,7 @@ class const:
             "R{A} := #R{B}",
             "R{A} := R{B} .. R{C}",
             "PC += {B}",
-            "if {PB} ~= {PC} then",
+            "if {PB} == {PC} then",
             "if {PB} < {PC} then",
             "if {PB} <= {PC} then",
             "if not R{A} then",
