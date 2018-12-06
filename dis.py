@@ -318,10 +318,20 @@ class LuaDec:
             #处理跳转
             if C:
                 comment += "; goto {0}".format(self.pc + 2)
+        elif const.opCode[opCode] == "OP_LOADNIL":
+            comment = ""
+            for i in range(B):
+                comment += "R{0}, ".format(A + i)
+            comment = comment[:-2]
+            comment += " := nil"
+        elif const.opCode[opCode] == "OP_SELF":
+            comment = "R{}".format(A+1) + comment[2:]
+        elif const.opCode[opCode] == "OP_JMP":
+            comment += "; goto {0}".format(self.pc + 1 + B)
         
         #try:
         regsFmt = "{} {} {}".format(parsedA, parsedB, parsedC)
-        print("{:>5s} [-]: {:<10s}{:<13s};{}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))
+        print("{:>5s} [-]: {:<10s}{:<13s}; {}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))
             #print("opCode: {0} \t{1} {2} {3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
         #except:
         #    pass
