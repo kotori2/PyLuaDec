@@ -404,18 +404,22 @@ class LuaDec:
         elif const.opCode[opCode] == "OP_CALL":
             comment = ""
             for i in range(C - 1):
-                comment += "R{}, ".format(A + i)
+                comment += "R{} to top, ".format(A + i)
             if C > 1:
                 comment = comment[:-2] + " := R{}(".format(A)
+            elif C == 1:
+                comment += " := R{}(".format(A)
             else:
-                comment = comment + " := R{}(".format(A)
+                comment = "R{} to top := R{}(".format(A, A)
             
             for i in range(B - 1):
                 comment += "R{}, ".format(A + i + 1)
             if B > 1:
                 comment = comment[:-2] + ")"
+            elif B == 1:
+                comment += ")"
             else:
-                comment = comment + ")"
+                comment += "R{} to top)".format(C)
         elif const.opCode[opCode] == "OP_TAILCALL":
             comment = " := R{}(".format(A)
             for i in range(B - 1):
