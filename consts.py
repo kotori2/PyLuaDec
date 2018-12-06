@@ -83,7 +83,7 @@ class const:
             "R{A} := R{B}[{PC}]",
             "{{U{A}}}[{PB}] := {PC}",
             "{{U{B}}} := R{A}",
-            "R{A}[{PB}] := R{C}",
+            "R{A}[{PB}] := {PC}",
             "R{A} := {{{{}}}} (size = {B}, {C})",
             "RD := R{B}; R{A} := R{B}[{PC}]",
             "R{A} := {PB} + {PC}",
