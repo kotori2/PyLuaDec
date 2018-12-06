@@ -328,12 +328,40 @@ class LuaDec:
             comment = "R{}".format(A+1) + comment[2:]
         elif const.opCode[opCode] == "OP_JMP":
             comment += "; goto {0}".format(self.pc + 1 + B)
+        elif const.opCode[opCode] in ["OP_EQ", "OP_LT", "OP_LE", "OP_TEST", "OP_TESTSET"]:
+            comment += " goto {0} else goto {1}".format(self.pc + 2, self.pc + 1)
+        elif const.opCode[opCode] == "OP_CALL":
+            comment = ""
+            for i in range(C - 1):
+                comment += "R{}, ".format(A + i)
+            if C > 1:
+                comment = comment[:-2] + " := R{}(".format(A)
+            else:
+                comment = comment + " := R{}(".format(A)
+            
+            for i in range(B - 1):
+                comment += "R{}, ".format(A + i + 1)
+            if B > 1:
+                comment = comment[:-2] + ")"
+            else:
+                comment = comment + ")"
+        elif const.opCode[opCode] == "OP_TAILCALL":
+            comment = " := R{}(".format(A)
+            for i in range(B - 1):
+                comment += "R{}, ".format(A + i + 1)
+            if B > 1:
+                comment = comment[:-2] + ")"
+            else:
+                comment = comment + ")"
+        elif const.opCode[opCode] == "OP_RETURN":
+            for i in range(B - 1):
+                comment += "R{}, ".format(A + i + 1)
+            if B > 1:
+                comment = comment[:-2]
+            elif B == 0:
+                comment += "up to top"
         
-        #try:
         regsFmt = "{} {} {}".format(parsedA, parsedB, parsedC)
         print("{:>5s} [-]: {:<10s}{:<13s}; {}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))
-            #print("opCode: {0} \t{1} {2} {3}".format(const.opCode[opCode][3:], hex(A), hex(B), hex(C)))
-        #except:
-        #    pass
 
 d = LuaDec("note_manager.lua")

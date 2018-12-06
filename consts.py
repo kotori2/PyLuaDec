@@ -77,7 +77,7 @@ class const:
             "R{A} := {{K{B}}}",
             "UNSUPPORTED",
             "R{A} := {B}",
-            "",                     #R(A+1), ..., R(A+B) := nil，没法用模板
+            "",                                     #R(A+1), ..., R(A+B) := nil，没法用模板
             "R{A} := {{U{B}}}",
             "R{A} := {{U{B}}}[{{K{C}}}]",
             "R{A} := R{B}[{{K{C}}}]",
@@ -86,17 +86,25 @@ class const:
             "R{A}[{{K{B}}}] := {{K{C}}}",
             "R{A} := {{}} (size = {B}, {C})",
             "RD := R{B}; R{A} := R{B}[{{K{C}}}]",
-            "R{A} := {{K{B}}} + {{K{C}}}",
-            "R{A} := {{K{B}}} - {{K{C}}}",
-            "R{A} := {{K{B}}} * {{K{C}}}",
-            "R{A} := {{K{B}}} / {{K{C}}}",
-            "R{A} := {{K{B}}} % {{K{C}}}",
-            "R{A} := {{K{B}}} ^ {{K{C}}}",
+            "R{A} := R{B} + R{C}",
+            "R{A} := R{B} - R{C}",
+            "R{A} := R{B} * R{C}",
+            "R{A} := R{B} / R{C}",
+            "R{A} := R{B} % R{C}",
+            "R{A} := R{B} ^ R{C}",
             "R{A} := -R{B}",
             "R{A} := not R{B}",
             "R{A} := #R{B}",
             "R{A} := R{B} .. R{C}",
-            "PC += {B}"
+            "PC += {B}",
+            "if R{B} ~= R{C} then",
+            "if R{B} < R{C} then",
+            "if R{B} <= R{C} then",
+            "if not R{A} then",
+            "if R{B} then R{A} := R{B};",
+            "",                                     #R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1))
+            "",                                     #return R(A)(R(A+1), ... ,R(A+B-1))
+            "return "
         ]
 
         OpArgN = 0  #参数未被使用
