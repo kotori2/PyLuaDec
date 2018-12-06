@@ -404,7 +404,7 @@ class LuaDec:
         elif const.opCode[opCode] == "OP_CALL":
             comment = ""
             for i in range(C - 1):
-                comment += "R{} to top, ".format(A + i)
+                comment += "R{}, ".format(A + i)
             if C > 1:
                 comment = comment[:-2] + " := R{}(".format(A)
             elif C == 1:
