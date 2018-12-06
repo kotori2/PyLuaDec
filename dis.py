@@ -11,7 +11,7 @@ class LuaDec:
         self.readFile(fileName)
         self.readHeader()
         self.readFunction()
-        self.tree.show()
+        #self.tree.show()
 
     def readFile(self, fileName):
         f = open(fileName, "rb")
@@ -70,12 +70,11 @@ class LuaDec:
         numParams       = ord(protoheader[2])
         is_vararg       = ord(protoheader[3])
         maxStackSize    = ord(protoheader[4])
-        print("Function {0} defined on line {1} - {2} have {3} params".format(funcName, lineDefined, lastLineDefined, numParams))
         
         #Code
         sizeCode = self.readUInt32()
         instructions = []
-        print("Code total size: {0}".format(sizeCode))
+        #print("Code total size: {0}".format(sizeCode))
         for i in range(sizeCode):
             ins = self.readUInt32()
             instructions.append(ins)
@@ -85,7 +84,7 @@ class LuaDec:
         #Constants
         sizeConstants = self.readUInt32()
         constants = []
-        print("Constants total size: {0}".format(sizeConstants))
+        #print("Constants total size: {0}".format(sizeConstants))
         for i in range(sizeConstants):
             const_type = self.fileBuf[self.ptr]
             self.ptr += 1
@@ -107,7 +106,7 @@ class LuaDec:
             else:
                 raise Exception("Undefined constant type {0}.".format(hex(const_type)))
             constants.append(const_val)
-            print("Constant: {0}".format(const_val))
+            #print("Constant: {0}".format(const_val))
 
         #Skip Protos
         ptrBackupStart = self.ptr #备份protos的位置，先处理后面的upvalue等东西
@@ -118,21 +117,21 @@ class LuaDec:
         #Upvalue
         sizeUpvalue = self.readUInt32()
         upvalues = []
-        print("Upvalue total size: {0}".format(sizeUpvalue))
+        #print("Upvalue total size: {0}".format(sizeUpvalue))
         for i in range(sizeUpvalue):
             instack = self.fileBuf[self.ptr]
             idx     = self.fileBuf[self.ptr + 1]
             self.ptr += 2
             upvalues.append([instack, idx])
-            print("Upvalue: {0} {1}".format(instack, idx))
+            #print("Upvalue: {0} {1}".format(instack, idx))
 
         #srcName
         sizeSrcName = self.readUInt32()
-        print("srcName size: {0}".format(sizeSrcName))
+        #print("srcName size: {0}".format(sizeSrcName))
         if sizeSrcName > 0:
             srcName = str(self.fileBuf[self.ptr:self.ptr + sizeSrcName], encoding="utf8")
             self.ptr += sizeSrcName
-            print("srcName: " + srcName)
+            #print("srcName: " + srcName)
 
         #Lines
         sizeLines = self.readUInt32()
@@ -155,14 +154,14 @@ class LuaDec:
         }
         self.tree.create_node(funcName, funcName, parent=parent, data=data)
         
-        #Proto
-        ptrBackupEnd = self.ptr
-        self.ptr = ptrBackupStart
-        sizeProtos = self.readUInt32()
-        print("Protos total size: {0}".format(sizeProtos))
-        for i in range(sizeProtos):
-            self.readFunction(parent=funcName)
-        self.ptr = ptrBackupEnd
+        print("; {:<20s}{}".format("Function", funcName))
+        print("; {:<20s}{}".format("Defined from line", lineDefined))
+        print("; {:<20s}{}".format("Defined to line", lastLineDefined))
+        print("; {:<20s}{}".format("#Upvalues", sizeUpvalue))
+        print("; {:<20s}{}".format("#Parameters", numParams))
+        print("; {:<20s}{}".format("Is_vararg", is_vararg))
+        print("; {:<20s}{}\n".format("Max Stack Size", maxStackSize))
+        
 
         #处理单个指令
         self.pc = 0
@@ -170,9 +169,32 @@ class LuaDec:
             self.processInstruction(i)
             self.pc += 1
 
+        print("\n; Constants")
+        count = 0
+        for i in data['constants']:
+            print("{:>5s} {}".format(str(count), i))
+            count += 1
+
+        print("\n; Upvalues")
+        count = 0
+        for i in data['upvalues']:
+            print("{:>5s}\t{}\t{}".format(str(count), i[0], i[1]))
+            count += 1
+        
+        print("\n")
+
+        #Proto
+        ptrBackupEnd = self.ptr
+        self.ptr = ptrBackupStart
+        sizeProtos = self.readUInt32()
+        #print("Protos total size: {0}".format(sizeProtos))
+        for i in range(sizeProtos):
+            self.readFunction(parent=funcName)
+        self.ptr = ptrBackupEnd
+
     #跳过函数，用于需要获取后面的指针位置的情况
     def skipFunction(self):
-        print("Start skipping Proto, current ptr at {0}".format(hex(self.ptr)))
+        #print("Start skipping Proto, current ptr at {0}".format(hex(self.ptr)))
         #ProtoHeader
         self.ptr += 11
 
@@ -225,7 +247,7 @@ class LuaDec:
 
         #UpvalNames
         sizeUpvalNames = self.readUInt32()
-        print("End skipping Proto. Current ptr at {0}".format(hex(self.ptr)))
+        #print("End skipping Proto. Current ptr at {0}".format(hex(self.ptr)))
 
     def processInstruction(self, ins):
         opCode = ins % (1 << 6)
