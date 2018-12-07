@@ -38,6 +38,8 @@ class LuaDec:
                 return "false"
         elif val is None:
             return "nil"
+        elif type(val) == float and int(val) == val:
+            return int(val)
         else:
             return val
 
