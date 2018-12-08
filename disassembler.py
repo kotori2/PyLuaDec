@@ -409,7 +409,7 @@ class LuaDec:
         elif const.opCode[opCode] == "OP_JMP":
             comment += " (goto {0})".format(self.pc + 1 + B)
         elif const.opCode[opCode] in ["OP_EQ", "OP_LT", "OP_LE", "OP_TEST", "OP_TESTSET"]:
-            if const.opCode[opCode] == "OP_EQ" and A:
+            if const.opCode[opCode] == "OP_EQ" and A == 0:
                 comment = comment.replace("==", "~=")
             if const.opCode[opCode] == "OP_LT" and A:
                 comment = comment.replace("<", ">=")
