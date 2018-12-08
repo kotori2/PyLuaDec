@@ -43,6 +43,21 @@ class LuaDec:
         else:
             return val
 
+    def processUpvalue(self, i, funcName):
+        if i[0] == 1:
+            if funcName == "root":
+                return "G"
+            return "UR{}".format(i[1])
+        elif i[0] == 0:
+            pNode = self.tree.parent(funcName)
+            result = self.processUpvalue(pNode.data['upvalues'][i[1]], pNode.identifier)
+            if result[-1] != "G":
+                return "U" + result
+            else:
+                return result
+        else:
+            raise Exception("Unexpected upvalue {}".format(i[0]))
+
     def readHeader(self):
         magic = self.fileBuf[:4]
         if magic != b"\x1bLua":
@@ -185,7 +200,7 @@ class LuaDec:
             count += 1
         count = 0
         for i in data['upvalues']:
-            fmtVals["U{}".format(count)] = "U{}".format(count)
+            fmtVals["U{}".format(count)] = self.processUpvalue(i, funcName)
             count += 1
 
         #处理单个指令
