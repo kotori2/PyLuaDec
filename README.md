@@ -1,5 +1,5 @@
 # PyLuaDec
-Lua disassembler
+Luac disassembler for Lua v5.2
 
 ## Install Dependency
 ```
