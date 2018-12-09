@@ -4,7 +4,8 @@ from treelib import Tree
 const = const()
 
 class LuaDec:
-    def __init__(self, fileName):
+    def __init__(self, fileName, format = "luadec"):
+        self.format = format
         self.ptr = 0
         self.pc = 0
         self.tree = Tree()
@@ -120,22 +121,26 @@ class LuaDec:
             self.ptr += 1
             if const_type == const.LUA_DATATYPE['LUA_TNIL']:
                 const_val = None
+                const_type = "nil"
             elif const_type == const.LUA_DATATYPE['LUA_TNUMBER']:
                 #lua的number=double(8 bytes)
                 const_val = struct.unpack("<d", self.fileBuf[self.ptr:self.ptr + 8])[0]
                 self.ptr += 8
+                const_type = "number"
             elif const_type == const.LUA_DATATYPE['LUA_TBOOLEAN']:
                 const_val = bool(self.fileBuf[self.ptr])
                 self.ptr += 1
+                const_type = "bool"
             elif const_type == const.LUA_DATATYPE['LUA_TSTRING']:
                 str_len = self.readUInt32()
                 const_val = str(self.fileBuf[self.ptr:self.ptr + str_len - 1], encoding="utf8")
                 self.ptr += str_len
+                const_type = "string"
                 if self.fileBuf[self.ptr - 1] != 0:
                     raise Exception("Bad string")
             else:
                 raise Exception("Undefined constant type {0}.".format(hex(const_type)))
-            constants.append(const_val)
+            constants.append([const_val, const_type])
             #print("Constant: {0}".format(const_val))
 
         #Skip Protos
@@ -184,46 +189,78 @@ class LuaDec:
         }
         self.tree.create_node(funcName, funcName, parent=parent, data=data)
         
+        if self.format == "luaasm":
+            print("\n.fn({}, {})".format(numParams, "true" if is_vararg else "false"))
         print("; {:<20s}{}".format("Function", funcName))
         print("; {:<20s}{}".format("Defined from line", lineDefined))
         print("; {:<20s}{}".format("Defined to line", lastLineDefined))
         print("; {:<20s}{}".format("#Upvalues", sizeUpvalue))
         print("; {:<20s}{}".format("#Parameters", numParams))
         print("; {:<20s}{}".format("Is_vararg", is_vararg))
-        print("; {:<20s}{}\n".format("Max Stack Size", maxStackSize))
+        if self.format == "luaasm":
+            print("; {:<20s}{}".format("Max Stack Size", maxStackSize))
+        else:
+            print("; {:<20s}{}\n".format("Max Stack Size", maxStackSize))
         
         #生成一个Upvalue和Constant的拼接表
         fmtVals = {}
         count = 0
         for i in data['constants']:
-            fmtVals["K{}".format(count)] = self.formatValue(i)
+            if self.format == "luaasm":
+                fmtVals["K{}".format(count)] = self.formatValue(i[0])
+            else:
+                fmtVals["K{}".format(count)] = self.formatValue(i)
             count += 1
         count = 0
         for i in data['upvalues']:
             fmtVals["U{}".format(count)] = self.processUpvalue(i, funcName)
             count += 1
 
-        #处理单个指令
-        self.pc = 0
-        self.currFunc = funcName
-        self.fmtVals = fmtVals
-        for i in data['instructions']:
-            self.processInstruction(i)
-            self.pc += 1
+        if self.format == "luadec":
+            #处理单个指令
+            self.pc = 0
+            self.currFunc = funcName
+            self.fmtVals = fmtVals
+            for i in data['instructions']:
+                self.processInstruction(i)
+                self.pc += 1
 
-        print("\n; Constants")
+        if self.format == "luaasm":
+            print("\n.const")
+        else:
+            print("\n; Constants")
         count = 0
         for i in data['constants']:
-            print("{:>5s} {}".format(str(count), i))
+            if self.format == "luaasm":
+                print("K{:<5s} : {:>6s} = {}".format(str(count), i[1], i[0]))
+            else:
+                print("{:>5s} {}".format(str(count), i))
             count += 1
 
-        print("\n; Upvalues")
+        if self.format == "luaasm":
+            print("\n.upvalue")
+        else:
+            print("\n; Upvalues")
         count = 0
         for i in data['upvalues']:
-            print("{:>5s}\t{}\t{}".format(str(count), i[0], i[1]))
+            if self.format == "luaasm":
+                print("U{:<5s} = L{} R{}".format(str(count), i[0], i[1]))
+            else:
+                print("{:>5s}\t{}\t{}".format(str(count), i[0], i[1]))
             count += 1
-        
-        print("\n")
+
+        if self.format == "luadec":
+            print("\n")
+
+        if self.format == "luaasm":
+            print("\n.instruction")
+            #处理单个指令
+            self.pc = 0
+            self.currFunc = funcName
+            self.fmtVals = fmtVals
+            for i in data['instructions']:
+                self.processInstruction(i)
+                self.pc += 1
 
         #Proto
         ptrBackupEnd = self.ptr
@@ -233,6 +270,10 @@ class LuaDec:
         for i in range(sizeProtos):
             self.readFunction(parent=funcName)
         self.ptr = ptrBackupEnd
+
+        if self.format == "luaasm":
+            print(".endfn\n")
+
 
     #跳过函数，用于需要获取后面的指针位置的情况
     def skipFunction(self):
@@ -479,4 +520,7 @@ class LuaDec:
             if i != "":
                 seq.append(str(i))
         regsFmt = " ".join(seq)
-        print("{:>5s} [-]: {:<10s}{:<13s}; {}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))
+        if self.format == "luaasm":
+            print("{:<10s}{:<13s} ; {:>5s} {}".format(const.opCode[opCode][3:], regsFmt, "[{}]".format(str(self.pc)), comment))
+        else:
+            print("{:>5s} [-]: {:<10s}{:<13s}; {}".format(str(self.pc), const.opCode[opCode][3:], regsFmt, comment))
