@@ -111,7 +111,7 @@ class const:
             "if RD ~= nil then (R{A} := RD; PC += {B}",
             "UNSUPPORTED",
             "R{A} := closure(",
-            "UNSUPPORTED",
+            "R{A} to top = ...",
             "UNSUPPORTED"
         ]
 
