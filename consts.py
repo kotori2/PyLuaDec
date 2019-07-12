@@ -75,7 +75,7 @@ class const:
         self.pseudoCode = [
             "R{A} := R{B}",
             "R{A} := {{K{B}}}",
-            "UNSUPPORTED",
+            "",                                     #R(A) := Kst(extra arg)
             "R{A} := {B}",
             "",                                     #R(A+1), ..., R(A+B) := nil，没法用模板
             "R{A} := {{U{B}}}",

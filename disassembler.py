@@ -290,7 +290,15 @@ class LuaDec:
         #UpvalNames
         sizeUpvalNames = self.readUInt32()
         #print("End skipping Proto. Current ptr at {0}".format(hex(self.ptr)))
-
+    def getExtraArg(self):
+        next_ins = self.tree.get_node(self.currFunc).data['instructions'][self.pc + 1]
+        opCode = next_ins % (1 << 6)
+        if const.opCode[opCode] == "OP_EXTRAARG":
+            Ax = (next_ins >> 6)
+            return True, Ax
+        else:
+            return False, "ERROR: C == 0 but no OP_EXTRAARG followed."
+            
     def processInstruction(self, ins):
         opCode = ins % (1 << 6)
         opMode = const.opMode[opCode]
@@ -477,11 +485,11 @@ class LuaDec:
             real_c = C
             err = False
             if C == 0:
-                if const.opCode[opCode + 1] == "OP_EXTRAARG":
-                    next_ins = self.tree.get_node(self.currFunc).data['instructions'][self.pc + 1]
-                    real_c = (next_ins >> 6)
+                success, result = self.getExtraArg()
+                if success:
+                    real_c = result
                 else:
-                    comment = "ERROR: C == 0 but no OP_EXTRAARG followed."
+                    comment += result
                     err = True
                 
             if not err:
@@ -495,6 +503,13 @@ class LuaDec:
                     comment += "R{}[{}] to R{}[{}] := R{} to R{}".format(A, start_index, A, start_index + B - 1, A + 1, A + B)
                 if C == 0:
                     comment += "; CONTAINS EXTRAARG"
+        elif const.opCode[opCode] == "OP_LOADKX":
+            success, result = self.getExtraArg()
+            if success:
+                Ax = result
+                comment += "R{} := {{K{}}}".format(A, Ax).format(**self.fmtVals)
+            else:
+                comment += result
 
         seq = []
         for i in [parsedA, parsedB, parsedC]:
