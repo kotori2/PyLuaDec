@@ -473,7 +473,29 @@ class LuaDec:
                 comment += "function_{})".format(B)
             else:
                 comment += self.currFunc + "_{})".format(B)
-        
+        elif const.opCode[opCode] == "OP_SETLIST":
+            real_c = C
+            err = False
+            if C == 0:
+                if const.opCode[opCode + 1] == "OP_EXTRAARG":
+                    next_ins = self.tree.get_node(self.currFunc).data['instructions'][self.pc + 1]
+                    real_c = (next_ins >> 6)
+                else:
+                    comment = "ERROR: C == 0 but no OP_EXTRAARG followed."
+                    err = True
+                
+            if not err:
+                LFIELDS_PER_FLUSH = 50
+                start_index = (real_c - 1) * LFIELDS_PER_FLUSH
+                if B == 0:
+                    comment += "R{}[{}] to R{}[top] := R{} to top".format(A, start_index, A, A + 1)
+                elif B == 1:
+                    comment += "R{}[{}] := R{}".format(A, start_index, A + 1)
+                else:
+                    comment += "R{}[{}] to R{}[{}] := R{} to R{}".format(A, start_index, A, start_index + B - 1, A + 1, A + B)
+                if C == 0:
+                    comment += "; CONTAINS EXTRAARG"
+
         seq = []
         for i in [parsedA, parsedB, parsedC]:
             if i != "":

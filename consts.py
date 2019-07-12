@@ -109,10 +109,10 @@ class const:
             "R{A} -= RD; PC += {B} ",
             "RF, RG := R{A}(RD, RE)",
             "if RD ~= nil then (R{A} := RD; PC += {B}",
-            "UNSUPPORTED",
+            "",                                     #R(a)[(c-1)*FPF+i] := R(a+i), 1 <= i <= b, a=13, b=0, c=1, FPF=50
             "R{A} := closure(",
             "R{A} to top = ...",
-            "UNSUPPORTED"
+            "SKIP"
         ]
 
         OpArgN = 0  #参数未被使用
