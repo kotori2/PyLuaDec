@@ -190,7 +190,7 @@ class LuaDec:
         self.tree.create_node(funcName, funcName, parent=parent, data=data)
         
         if self.format == "luaasm":
-            print("\n.fn({}, {})".format(numParams, "true" if is_vararg else "false"))
+            print("\n.fn({}{})".format(numParams, ", __va_args__" if is_vararg else ""))
         print("; {:<20s}{}".format("Function", funcName))
         print("; {:<20s}{}".format("Defined from line", lineDefined))
         print("; {:<20s}{}".format("Defined to line", lastLineDefined))
