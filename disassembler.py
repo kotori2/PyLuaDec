@@ -206,7 +206,7 @@ class LuaDec:
         fmtVals = {}
         count = 0
         for i in data['constants']:
-            if self.format == "luaasm":
+            if self.format == "luadec":
                 fmtVals["K{}".format(count)] = self.formatValue(i[0])
             else:
                 fmtVals["K{}".format(count)] = self.formatValue(i)
@@ -232,9 +232,9 @@ class LuaDec:
         count = 0
         for i in data['constants']:
             if self.format == "luaasm":
-                print("K{:<5s} : {:>6s} = {}".format(str(count), i[1], i[0]))
+                print("K{:<5s} = {}".format(str(count), self.formatValue(i)))
             else:
-                print("{:>5s} {}".format(str(count), i))
+                print("{:>5s} {}".format(str(count), i[0]))
             count += 1
 
         if self.format == "luaasm":
