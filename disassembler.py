@@ -190,7 +190,7 @@ class LuaDec:
         self.tree.create_node(funcName, funcName, parent=parent, data=data)
         
         if self.format == "luaasm":
-            print("\n.fn({}{})".format(numParams, ", __va_args__" if is_vararg else ""))
+            print("\n.fn(R{}{})".format(numParams, ", __va_args__" if is_vararg else ""))
         print("; {:<20s}{}".format("Function", funcName))
         print("; {:<20s}{}".format("Defined from line", lineDefined))
         print("; {:<20s}{}".format("Defined to line", lastLineDefined))
@@ -206,10 +206,7 @@ class LuaDec:
         fmtVals = {}
         count = 0
         for i in data['constants']:
-            if self.format == "luadec":
-                fmtVals["K{}".format(count)] = self.formatValue(i[0])
-            else:
-                fmtVals["K{}".format(count)] = self.formatValue(i)
+            fmtVals["K{}".format(count)] = self.formatValue(i[0])
             count += 1
         count = 0
         for i in data['upvalues']:
@@ -224,6 +221,19 @@ class LuaDec:
             for i in data['instructions']:
                 self.processInstruction(i)
                 self.pc += 1
+        
+        if self.format == "luadec":
+            print("\n")
+
+        if self.format == "luaasm":
+            print("\n.instruction")
+        #处理单个指令
+        self.pc = 0
+        self.currFunc = funcName
+        self.fmtVals = fmtVals
+        for i in data['instructions']:
+            self.processInstruction(i)
+            self.pc += 1
 
         if self.format == "luaasm":
             print("\n.const")
@@ -231,10 +241,7 @@ class LuaDec:
             print("\n; Constants")
         count = 0
         for i in data['constants']:
-            if self.format == "luaasm":
-                print("K{:<5s} = {}".format(str(count), self.formatValue(i)))
-            else:
-                print("{:>5s} {}".format(str(count), i[0]))
+            print("K{:<5s} = {}".format(str(count), self.formatValue(i[0])))
             count += 1
 
         if self.format == "luaasm":
@@ -248,19 +255,6 @@ class LuaDec:
             else:
                 print("{:>5s}\t{}\t{}".format(str(count), i[0], i[1]))
             count += 1
-
-        if self.format == "luadec":
-            print("\n")
-
-        if self.format == "luaasm":
-            print("\n.instruction")
-            #处理单个指令
-            self.pc = 0
-            self.currFunc = funcName
-            self.fmtVals = fmtVals
-            for i in data['instructions']:
-                self.processInstruction(i)
-                self.pc += 1
 
         #Proto
         ptrBackupEnd = self.ptr
