@@ -452,12 +452,13 @@ class LuaDec:
         elif const.opCode[opCode] == "OP_JMP":
             comment += " (goto {0})".format(self.pc + 1 + B)
         elif const.opCode[opCode] in ["OP_EQ", "OP_LT", "OP_LE", "OP_TEST", "OP_TESTSET"]:
-            if const.opCode[opCode] == "OP_EQ" and A == 0:
-                comment = comment.replace("==", "~=")
-            if const.opCode[opCode] == "OP_LT" and A:
-                comment = comment.replace("<", ">=")
-            if const.opCode[opCode] == "OP_LE" and A:
-                comment = comment.replace("<=", ">")
+            if A:
+                if const.opCode[opCode] == "OP_EQ":
+                    comment = comment.replace("==", "~=")
+                elif const.opCode[opCode] == "OP_LT":
+                    comment = comment.replace("<", ">=")
+                elif const.opCode[opCode] == "OP_LE":
+                    comment = comment.replace("<=", ">")
             comment += " goto {0} else goto {1}".format(self.pc + 2, self.pc + 1)
             if C == 0:
                 comment = comment.replace("not ", "")
