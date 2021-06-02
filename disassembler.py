@@ -133,7 +133,13 @@ class LuaDec:
                 const_type = "bool"
             elif const_type == const.LUA_DATATYPE['LUA_TSTRING']:
                 str_len = self.readUInt32()
-                const_val = str(self.fileBuf[self.ptr:self.ptr + str_len - 1], encoding="utf8")
+                buf = self.fileBuf[self.ptr:self.ptr + str_len - 1]
+                try:
+                    const_val = str(buf, encoding="utf8")
+                except UnicodeDecodeError:
+                    const_val = ""
+                    for i in buf:
+                        const_val += "\\{}".format(i)
                 self.ptr += str_len
                 const_type = "string"
                 if self.fileBuf[self.ptr - 1] != 0:
